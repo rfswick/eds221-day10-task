@@ -1,0 +1,71 @@
+---
+title: "North Temperate Lakes LTER"
+author: "Rachel Swick"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+
+```{r}
+ice_cover_duration <- read_csv(here("data", "ntl33_v7.csv"), na = c("-999", "NaN"))
+meterological_data <- read_csv(here("data", "ntl20_v6.csv"), na = "-999")
+```
+
+```{r}
+lake_ice <- ice_cover_duration |>
+  group_by(lakeid)|>
+  summarize(mean_duration = mean(ice_duration, na.rm = TRUE))
+
+
+ggplot(data = ice_cover_duration, aes(x = ice_duration, y = lakeid)) +
+  geom_jitter(height = 0.35) +
+  geom_boxplot(color = "blue",
+               alpha = 0)
+  geom_vline(xintercept = 102.2, linetype = "solid", color = "blue") +
+  geom_vline(xintercept = 103.4, linetype = "solid", color = "red") +
+  geom_vline(xintercept = 114.2, linetype = "solid", color = "green")
+  
+```
+
+```{r}
+year_ice <- ice_cover_duration |>
+  group_by(year4)|>
+  summarize(mean_duration = mean(ice_duration, na.rm = TRUE))
+```
+
+```{r}
+ggplot(data = year_ice, aes(y = mean_duration, x = year4)) +
+  geom_point() +
+  geom_smooth()
+```
+
+```{r}
+winter_temps <- meterological_data |>
+  dplyr::filter(month %in% c(12, 1, 2)) |>
+  group_by(year4) |>
+  summarise(mean_air_temp = mean(ave_air_temp_adjusted, na.rm = TRUE))
+
+ggplot(data = winter_temps, aes(x = year4, y = mean_air_temp)) +
+  geom_point() +
+  geom_smooth()
+```
+
+```{r}
+ice_temps_join <- full_join(winter_temps, year_ice)
+
+ggplot(data = ice_temps_join, aes(x = mean_air_temp, y = mean_duration)) +
+  geom_point() +
+  geom_smooth()
+```
+
+
+
+
+
+
+
